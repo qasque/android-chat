@@ -38,20 +38,24 @@ class _KosmosSpinnerState extends State<KosmosSpinner>
   Widget build(BuildContext context) {
     final color = widget.color ?? AppColors.accentLight;
     final dotSize = widget.size * 0.28;
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (context, _) {
-          return CustomPaint(
-            painter: _SpinnerPainter(
-              progress: _ctrl.value,
-              color: color,
-              dotSize: dotSize,
-            ),
-          );
-        },
+    return RepaintBoundary(
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: AnimatedBuilder(
+          animation: _ctrl,
+          builder: (context, _) {
+            return CustomPaint(
+              isComplex: true,
+              willChange: true,
+              painter: _SpinnerPainter(
+                progress: _ctrl.value,
+                color: color,
+                dotSize: dotSize,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -123,19 +127,23 @@ class _KosmosProgressBarState extends State<KosmosProgressBar>
   @override
   Widget build(BuildContext context) {
     final color = widget.color ?? AppColors.accent;
-    return SizedBox(
-      height: widget.height,
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (context, _) {
-          return CustomPaint(
-            size: Size(double.infinity, widget.height),
-            painter: _ShimmerBarPainter(
-              progress: _ctrl.value,
-              color: color,
-            ),
-          );
-        },
+    return RepaintBoundary(
+      child: SizedBox(
+        height: widget.height,
+        child: AnimatedBuilder(
+          animation: _ctrl,
+          builder: (context, _) {
+            return CustomPaint(
+              isComplex: true,
+              willChange: true,
+              size: Size(double.infinity, widget.height),
+              painter: _ShimmerBarPainter(
+                progress: _ctrl.value,
+                color: color,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

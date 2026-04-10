@@ -498,48 +498,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _FadeInCard extends StatefulWidget {
+class _FadeInCard extends StatelessWidget {
   final int delay;
   final Widget child;
 
   const _FadeInCard({required this.delay, required this.child});
 
   @override
-  State<_FadeInCard> createState() => _FadeInCardState();
-}
-
-class _FadeInCardState extends State<_FadeInCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _slide = Tween(begin: const Offset(0, 0.05), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    Future.delayed(Duration(milliseconds: widget.delay), () {
-      if (mounted) _ctrl.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fade,
-      child: SlideTransition(position: _slide, child: widget.child),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 300 + delay),
+      curve: Curves.easeOutCubic,
+      builder: (_, v, c) => Opacity(
+        opacity: v,
+        child: Transform.translate(
+          offset: Offset(0, 8 * (1 - v)),
+          child: c,
+        ),
+      ),
+      child: child,
     );
   }
 }

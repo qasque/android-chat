@@ -155,7 +155,7 @@ class ChatwootDrawer extends StatelessWidget {
   }
 }
 
-class _DrawerHeader extends StatefulWidget {
+class _DrawerHeader extends StatelessWidget {
   final String initials;
   final String? agentName;
   final String? agentEmail;
@@ -167,85 +167,63 @@ class _DrawerHeader extends StatefulWidget {
   });
 
   @override
-  State<_DrawerHeader> createState() => _DrawerHeaderState();
-}
-
-class _DrawerHeaderState extends State<_DrawerHeader>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    )..forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: _ctrl, curve: Curves.easeIn),
-      child: SlideTransition(
-        position: Tween(begin: const Offset(-0.1, 0), end: Offset.zero)
-            .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic)),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 20,
-            left: 16,
-            right: 16,
-            bottom: 16,
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      builder: (_, v, c) => Opacity(
+        opacity: v,
+        child: Transform.translate(
+          offset: Offset(-16 * (1 - v), 0),
+          child: c,
+        ),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 20,
+          left: 16,
+          right: 16,
+          bottom: 16,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            bottom: BorderSide(color: AppColors.border, width: 0.5),
           ),
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            border: Border(
-              bottom: BorderSide(color: AppColors.border, width: 0.5),
-            ),
-          ),
-          child: Row(
-            children: [
-              KosmosAvatar(
-                initials: widget.initials,
-                radius: 20,
-                showRing: true,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.agentName ?? "Kosmos Support",
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
+        ),
+        child: Row(
+          children: [
+            KosmosAvatar(initials: initials, radius: 20, showRing: true),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    agentName ?? "Kosmos Support",
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
-                    if (widget.agentEmail != null) ...[
-                      const SizedBox(height: 1),
-                      Text(
-                        widget.agentEmail!,
-                        style: const TextStyle(
-                          color: AppColors.textTertiary,
-                          fontSize: 11,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                  ),
+                  if (agentEmail != null) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      agentEmail!,
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
                       ),
-                    ],
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

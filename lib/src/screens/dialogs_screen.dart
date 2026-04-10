@@ -284,48 +284,28 @@ class _ConversationListState extends State<_ConversationList> {
   }
 }
 
-class _SlideInItem extends StatefulWidget {
+class _SlideInItem extends StatelessWidget {
   final int index;
   final Widget child;
   const _SlideInItem({required this.index, required this.child});
 
   @override
-  State<_SlideInItem> createState() => _SlideInItemState();
-}
-
-class _SlideInItemState extends State<_SlideInItem>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<Offset> _slide;
-  late final Animation<double> _fade;
-
-  @override
-  void initState() {
-    super.initState();
-    final delay = (widget.index * 40).clamp(0, 400);
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _slide = Tween(begin: const Offset(0, 0.08), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    Future.delayed(Duration(milliseconds: delay), () {
-      if (mounted) _ctrl.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _slide,
-      child: FadeTransition(opacity: _fade, child: widget.child),
+    if (index > 8) return RepaintBoundary(child: child);
+    return RepaintBoundary(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        builder: (_, v, c) => Opacity(
+          opacity: v,
+          child: Transform.translate(
+            offset: Offset(0, 12 * (1 - v)),
+            child: c,
+          ),
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -561,18 +541,15 @@ class _ConversationTile extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Hero(
-                  tag: "avatar-${row.id}",
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: _avatarColor(row.id),
-                    child: Text(
-                      initials,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: _avatarColor(row.id),
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -754,7 +731,7 @@ class _StatusDot extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatefulWidget {
+class _EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -767,75 +744,42 @@ class _EmptyState extends StatefulWidget {
   });
 
   @override
-  State<_EmptyState> createState() => _EmptyStateState();
-}
-
-class _EmptyStateState extends State<_EmptyState>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _scale;
-  late final Animation<double> _fade;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _scale = Tween(begin: 0.9, end: 1.0)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _ctrl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Center(
-      child: FadeTransition(
-        opacity: _fade,
-        child: ScaleTransition(
-          scale: _scale,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Icon(widget.icon,
-                      size: 32, color: AppColors.textTertiary),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutBack,
+        builder: (_, v, c) => Opacity(
+          opacity: v.clamp(0.0, 1.0),
+          child: Transform.scale(scale: 0.9 + 0.1 * v, child: c),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.subtitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+                child: Icon(icon, size: 32, color: AppColors.textTertiary),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
           ),
         ),
       ),

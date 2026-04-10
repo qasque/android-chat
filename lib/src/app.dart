@@ -132,19 +132,25 @@ class _SupportAppState extends State<SupportApp> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      DialogsScreen(
-        controller: _chatController,
-        agent: _agent,
-        onOpenChat: () => _switchTab(1),
+      RepaintBoundary(
+        child: DialogsScreen(
+          controller: _chatController,
+          agent: _agent,
+          onOpenChat: () => _switchTab(1),
+        ),
       ),
-      ChatScreen(controller: _chatController, agent: _agent),
-      ProfileScreen(
-        user: _user,
-        onSignIn: _saveProfile,
-        agent: _agent,
-        bridgeBaseUrl: widget.config.bridgeBaseUrl,
-        defaultChatwootBaseUrl: _profileChatwootBase,
-        onWorkspaceSessionChanged: _syncChatMode,
+      RepaintBoundary(
+        child: ChatScreen(controller: _chatController, agent: _agent),
+      ),
+      RepaintBoundary(
+        child: ProfileScreen(
+          user: _user,
+          onSignIn: _saveProfile,
+          agent: _agent,
+          bridgeBaseUrl: widget.config.bridgeBaseUrl,
+          defaultChatwootBaseUrl: _profileChatwootBase,
+          onWorkspaceSessionChanged: _syncChatMode,
+        ),
       ),
     ];
 
@@ -189,13 +195,20 @@ class _SupportAppState extends State<SupportApp> with TickerProviderStateMixin {
             const SizedBox(width: 4),
           ],
         ),
-        body: FadeTransition(
-          opacity: _fadeAnim,
-          child: IndexedStack(index: _tabIndex, children: screens),
-        ),
-        bottomNavigationBar: PremiumNavBar(
-          selectedIndex: _tabIndex,
-          onTap: _switchTab,
+        resizeToAvoidBottomInset: true,
+        body: Column(
+          children: [
+            Expanded(
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: IndexedStack(index: _tabIndex, children: screens),
+              ),
+            ),
+            PremiumNavBar(
+              selectedIndex: _tabIndex,
+              onTap: _switchTab,
+            ),
+          ],
         ),
       ),
     );

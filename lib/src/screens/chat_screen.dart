@@ -316,48 +316,25 @@ class _ChatScreenState extends State<ChatScreen>
   }
 }
 
-class _AnimatedBubble extends StatefulWidget {
+class _AnimatedBubble extends StatelessWidget {
   final int index;
   final Widget child;
   const _AnimatedBubble({required this.index, required this.child});
 
   @override
-  State<_AnimatedBubble> createState() => _AnimatedBubbleState();
-}
-
-class _AnimatedBubbleState extends State<_AnimatedBubble>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
-    );
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _scale = Tween(begin: 0.95, end: 1.0)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    final delay = (widget.index * 30).clamp(0, 300);
-    Future.delayed(Duration(milliseconds: delay), () {
-      if (mounted) _ctrl.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fade,
-      child: ScaleTransition(scale: _scale, child: widget.child),
+    if (index > 10) return RepaintBoundary(child: child);
+    return RepaintBoundary(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        builder: (_, v, c) => Opacity(
+          opacity: v,
+          child: Transform.scale(scale: 0.96 + 0.04 * v, child: c),
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -631,26 +608,28 @@ class _AgentInputBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+      bottom: false,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isPrivateNote
-                  ? const Color(0xFF2D2200)
-                  : AppColors.surface,
-              border: Border(
-                top: BorderSide(
-                  color: isPrivateNote
-                      ? AppColors.orange.withValues(alpha: 0.4)
-                      : AppColors.border,
-                  width: 0.5,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isPrivateNote
+                    ? const Color(0xFF2D2200)
+                    : AppColors.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: isPrivateNote
+                        ? AppColors.orange.withValues(alpha: 0.4)
+                        : AppColors.border,
+                    width: 0.5,
+                  ),
                 ),
               ),
-            ),
-            child: Row(
-              children: [
+              child: Row(
+                children: [
                 _InputAction(
                   icon: isPrivateNote
                       ? Icons.lock_rounded
@@ -700,9 +679,9 @@ class _AgentInputBar extends StatelessWidget {
                   tooltip: "Эмодзи",
                   onTap: () => HapticFeedback.lightImpact(),
                 ),
-              ],
+                ],
+              ),
             ),
-          ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
@@ -830,12 +809,14 @@ class _VisitorInputBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+      bottom: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         decoration: const BoxDecoration(
           color: AppColors.surface,
           border: Border(
-              top: BorderSide(color: AppColors.border, width: 0.5)),
+            top: BorderSide(color: AppColors.border, width: 0.5),
+          ),
         ),
         child: Row(
           children: [
@@ -1000,7 +981,7 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-class _EmptyChat extends StatefulWidget {
+class _EmptyChat extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
@@ -1012,60 +993,35 @@ class _EmptyChat extends StatefulWidget {
   });
 
   @override
-  State<_EmptyChat> createState() => _EmptyChatState();
-}
-
-class _EmptyChatState extends State<_EmptyChat>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..forward();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Center(
-      child: FadeTransition(
-        opacity: CurvedAnimation(parent: _ctrl, curve: Curves.easeIn),
-        child: ScaleTransition(
-          scale: Tween(begin: 0.92, end: 1.0).animate(
-            CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Icon(widget.icon,
-                    size: 36, color: AppColors.textTertiary),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutBack,
+        builder: (_, v, c) => Opacity(
+          opacity: v.clamp(0.0, 1.0),
+          child: Transform.scale(scale: 0.92 + 0.08 * v, child: c),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
               ),
-              const SizedBox(height: 16),
-              Text(widget.title,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
-              Text(widget.subtitle,
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary)),
-            ],
-          ),
+              child: Icon(icon, size: 36, color: AppColors.textTertiary),
+            ),
+            const SizedBox(height: 16),
+            Text(title,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(subtitle,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          ],
         ),
       ),
     );
